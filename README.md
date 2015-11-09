@@ -50,6 +50,7 @@ Sample hosts file:
     leaf2.example.com
 
 Sample host_vars/leaf1.example.com
+
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -68,6 +69,7 @@ Sample host_vars/leaf1.example.com
         - Ethernet4
 
 Sample host_vars/leaf2.example.com
+
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
