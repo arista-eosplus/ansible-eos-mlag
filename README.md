@@ -10,7 +10,7 @@ Requirements
 ------------
 
 Requires the arista.eos role.  If you have not worked with the arista.eos role,
-consider following the [Quickstart][http://ansible-eos.readthedocs.org/en/latest/quickstart.html] guide.
+consider following the [Quickstart][quickstart] guide.
 
 Role Variables
 --------------
@@ -21,37 +21,18 @@ Sample host_vars file:
 
     mlag:
       mlag_domain_id: (string) The name of the MLAG Domain
-      mlag_trunk_group: mlagpeer
-      mlag_shutdown: false
-      local_if_vlan: Vlan1024
-      local_if_vlan_description: Peer MLAG Link
-      local_if_ip_address: 10.0.0.1/30
-      local_if_disable_spanning_tree: true
-      peer_address: 10.0.0.2
-      peer_link_if: Port-Channel10
-      peer_link_mode: trunk
-      peer_link_lacp_mode: active
-      peer_link_enable: true
-      peer_link_members:
-        - Ethernet3
-        - Ethernet4
-
-    mlag:
-      mlag_domain_id: mlag1
-      mlag_trunk_group: mlagpeer
-      mlag_shutdown: false
-      local_if_vlan: Vlan1024
-      local_if_vlan_description: Peer MLAG Link
-      local_if_ip_address: 10.0.0.1/30
-      local_if_disable_spanning_tree: true
-      peer_address: 10.0.0.2
-      peer_link_if: Port-Channel10
-      peer_link_mode: trunk
-      peer_link_lacp_mode: active
-      peer_link_enable: true
-      peer_link_members:
-        - Ethernet3
-        - Ethernet4
+      mlag_trunk_group: (string) Trunk group assigned to Vlan
+      mlag_shutdown: (boolean) Enable or disable the MLAG configuration
+      local_if_vlan: (string) The Vlan for the peer link, eg Vlan1024
+      local_if_vlan_description: (string) Description for Vlan1024
+      local_if_ip_address: (String) IP Address for the Vlan Interface
+      local_if_disable_spanning_tree: (boolean) Enable or disable STP on the peer Vlan
+      peer_address: (String) IP Address for the MLAG Peer
+      peer_link_if: (String) The Port-Channel used for the peer link
+      peer_link_mode: (Choices: trunk,access. Default: trunk) The switchport mode for the peer link
+      peer_link_lacp_mode: (Choices: active,passive,disabled. Default: active) The LACP mode for each Port-Channel member.
+      peer_link_enable: (boolean) Enable or disable the peer link member interfaces
+      peer_link_members: (List) List of interfaces
 
 
 Dependencies
@@ -148,3 +129,5 @@ Author Information
 ------------------
 
 Please raise any issues using our GitHub repo or email us at ansible-dev@arista.com
+
+[quickstart]: http://ansible-eos.readthedocs.org/en/latest/quickstart.html

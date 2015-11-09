@@ -47,7 +47,7 @@
 - name: Configure Interface Members of Port-Channel for MLAG
   eos_interface:
     name={{ item }}
-    description="MLAG PEER CNX - {{ mlag.mlag_domain_id }}"
+    description="MLAG Peer  - {{ mlag.mlag_domain_id }}"
     enable={{ mlag.peer_link_enable }}
     config={{ eos_eapi_config|default(omit) }}
     username={{ eos_eapi_username|default(omit) }}
@@ -113,7 +113,7 @@
 
 - name: Disable Spanning Tree on MLAG Vlan
   eos_config:
-    command='no spanning-tree vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}'
+    command="no spanning-tree vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}"
     config={{ eos_eapi_config|default(omit) }}
     username={{ eos_eapi_username|default(omit) }}
     password={{ eos_eapi_password|default(omit) }}
