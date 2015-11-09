@@ -39,9 +39,21 @@ Dependencies
 ------------
 
 The eos-mlag role utilizes modules distributed within the arista.eos role.
+The eos-mlag roles requires:
+
+- arista.eos version 1.2.0
 
 Example Playbook
 ----------------
+
+The following example will use the arista.eos-mlag role to completely setup MLAG
+on two leaf switches without writing any tasks. We'll create a ``hosts`` file
+with our two leaf switches, then a corresponding ``host_vars`` file for each
+leaf and then a simple playbook which only references the mlag role. By including
+the role we automatically get access to all of the tasks to configure MLAG. What's
+nice about this is that if you have a host without MLAG configuration, the
+tasks will be skipped without any issue.
+
 
 Sample hosts file:
 
@@ -49,9 +61,8 @@ Sample hosts file:
     leaf1.example.com
     leaf2.example.com
 
-Sample host_vars files:
+Sample host_vars/leaf1.example.com
 
-    # host_vars/leaf1.example.com
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -69,7 +80,8 @@ Sample host_vars files:
         - Ethernet3
         - Ethernet4
 
-    # host_vars/leaf2.example.com
+Sample host_vars/leaf2.example.com
+
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -86,13 +98,15 @@ Sample host_vars files:
         - Ethernet3
         - Ethernet4
 
-
-
-A simple playbook to enable MLAG on your leafs
+A simple playbook to enable MLAG on your leafs, leaf.yml
 
     - hosts: leafs
       roles:
          - arista.eos-mlag
+
+Then run with:
+
+    ansible-playbook -i hosts leaf.yml
 
 License
 -------
