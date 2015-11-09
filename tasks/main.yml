@@ -1,5 +1,5 @@
 ---
-- name: Configure VLAN for MLAG
+- name: Configure Vlan for MLAG
   eos_vlan:
     vlanid={{ mlag.local_if_vlan | regex_replace('\D+','') }}
     trunk_groups={{ mlag.mlag_trunk_group }}
@@ -12,7 +12,7 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Create Vlan Interface for MLAG
   eos_interface:
@@ -27,9 +27,9 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
-- name: Configure VLAN Interface IP for MLAG
+- name: Configure Vlan Interface IP for MLAG
   eos_ipinterface:
     name={{ mlag.local_if_vlan|mandatory }}
     address={{ mlag.local_if_ip_address|mandatory }}
@@ -42,12 +42,12 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Configure Interface Members of Port-Channel for MLAG
   eos_interface:
     name={{ item }}
-    description="MLAG Peer  - {{ mlag.mlag_domain_id }}"
+    description="MLAG Peer - {{ mlag.mlag_domain_id }}"
     enable={{ mlag.peer_link_enable }}
     config={{ eos_eapi_config|default(omit) }}
     username={{ eos_eapi_username|default(omit) }}
@@ -59,12 +59,12 @@
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
   with_items: mlag.peer_link_members | default([])
-  when: mlag.peer_link_members
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Configure Interface Members of Port-Channel for MLAG
   eos_portchannel:
     name={{ mlag.peer_link_if }}
-    members={{ mlag.peer_link_members | join(',') }}
+    members={{ mlag.peer_link_members|default([])|join(',') }}
     lacp_mode={{ mlag.peer_link_lacp_mode|default(active) }}
     config={{ eos_eapi_config|default(omit) }}
     username={{ eos_eapi_username|default(omit) }}
@@ -75,7 +75,7 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Configure switchport mode trunk on Port-Channel
   eos_switchport:
@@ -91,7 +91,7 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Configure MLAG
   eos_mlag_config:
@@ -109,7 +109,7 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag is defined
+  when: mlag is defined and not mlag.mlag_shutdown
 
 - name: Disable Spanning Tree on MLAG Vlan
   eos_config:
@@ -123,4 +123,4 @@
     host={{ eos_eapi_host|default(omit) }}
     port={{ eos_eapi_port|default(omit) }}
     debug={{ eos_debug|default(omit) }}
-  when: mlag.local_if_disable_spanning_tree | default(false)
+  when: mlag is defined and not mlag.mlag_shutdown and mlag.local_if_disable_spanning_tree|default(false)
