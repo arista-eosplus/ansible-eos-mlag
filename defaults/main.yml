@@ -1,0 +1,6 @@
+---
+# defaults file for eos-mlag
+# these defaults will cause Ansible to skip all tasks
+mlag:
+  mlag_shutdown: true
+  peer_link_members: []
