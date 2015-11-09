@@ -43,6 +43,15 @@ The eos-mlag role utilizes modules distributed within the arista.eos role.
 Example Playbook
 ----------------
 
+The following example will use the arista.eos-mlag role to completely setup MLAG
+on two leaf switches without writing any tasks. We'll create a ``hosts`` file
+with our two leaf switches, then a corresponding ``host_vars`` file for each
+leaf and then a simple playbook which only references the mlag role. By including
+the role we automatically get access to all of the tasks to configure MLAG. What's
+nice about this is that if you have a host without MLAG configuration, the
+tasks will be skipped without any issue.
+
+
 Sample hosts file:
 
     [leafs]
