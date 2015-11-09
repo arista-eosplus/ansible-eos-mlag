@@ -49,9 +49,7 @@ Sample hosts file:
     leaf1.example.com
     leaf2.example.com
 
-Sample host_vars files:
-
-    # host_vars/leaf1.example.com
+Sample host_vars/leaf1.example.com
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -69,7 +67,7 @@ Sample host_vars files:
         - Ethernet3
         - Ethernet4
 
-    # host_vars/leaf2.example.com
+Sample host_vars/leaf2.example.com
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -86,13 +84,15 @@ Sample host_vars files:
         - Ethernet3
         - Ethernet4
 
-
-
-A simple playbook to enable MLAG on your leafs
+A simple playbook to enable MLAG on your leafs, leaf.yml
 
     - hosts: leafs
       roles:
          - arista.eos-mlag
+
+Then run with:
+
+    ansible-playbook -i hosts leaf.yml
 
 License
 -------
