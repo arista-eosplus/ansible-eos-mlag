@@ -39,6 +39,9 @@ Dependencies
 ------------
 
 The eos-mlag role utilizes modules distributed within the arista.eos role.
+The eos-mlag roles requires:
+
+- arista.eos version 1.2.0
 
 Example Playbook
 ----------------
