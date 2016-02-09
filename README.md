@@ -16,7 +16,7 @@ dictionary.
 Role Variables
 --------------
 
-The ``mlag``dictionary includes the following keys described below:
+The ``mlag`` dictionary includes the following keys described below:
 
 |                            Key | Type                                | Notes                                                                                                                                                               |
 |-------------------------------:|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
