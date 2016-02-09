@@ -1,0 +1,29 @@
+#jinja2: trim_blocks: False
+#jinja2: lstrip_blocks: False
+
+{% set state = mlag.state|default('present') %}
+{% set portchannel = mlag.peer_link_if | regex_replace('\D+','') %}
+
+{% if state == 'absent' %}
+
+ {# If we find existing switchport config, then default settings #}
+ {# These default commands only run the first time absent is called #}
+ {% set switchport_block = base_config | config_block('interface ' ~ item, indent=3) %}
+   {% if switchport_block %}
+    {% if switchport_block | join('\n') | re_search('^channel-group') %}
+interface {{ item }}
+   default switchport mode
+   default switchport trunk group
+   default switchport trunk native vlan
+   default switchport trunk allowed vlan
+   default switchport access vlan
+   default channel-group
+    {% endif %}
+   {% endif %}
+
+{% elif state == 'present' %}
+interface {{ item }}
+   switchport
+   channel-group {{ portchannel }} mode {{ mlag.peer_link_lacp_mode|default('active') }}
+
+{% endif %}
