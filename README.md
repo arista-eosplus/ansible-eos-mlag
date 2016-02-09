@@ -16,24 +16,28 @@ dictionary.
 Role Variables
 --------------
 
-The tasks in this role are driven by the ``mlag`` object described below:
+The ``mlag``dictionary includes the following keys described below:
 
-Sample host_vars file:
+|                            Key | Type                                | Notes                                                                                                                                                               |
+|-------------------------------:|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                 mlag_domain_id | string                              | The name of the MLAG Domain                                                                                                                                         |
+|               mlag_trunk_group | string                              | Trunk group assigned to Vlan                                                                                                                                        |
+|                  mlag_shutdown | boolean:true, false*                | Enable or disable the MLAG configuration                                                                                                                            |
+|                  local_if_vlan | string                              | The Vlan for the peer link, eg Vlan1024                                                                                                                             |
+|      local_if_vlan_description | string                              | Description for local_if_vlan                                                                                                                                       |
+|            local_if_ip_address | string                              | IP Address for the local_if_vlan                                                                                                                                    |
+| local_if_disable_spanning_tree | boolean:true*, false                | Enable or disable STP on the peer Vlan                                                                                                                              |
+|                   peer_address | string                              | IP Address for the MLAG Peer                                                                                                                                        |
+|                   peer_link_if | string                              | The Port-Channel used for the peer link                                                                                                                             |
+|                 peer_link_mode | choices: trunk*, access             | The switchport mode for the peer link                                                                                                                               |
+|            peer_link_lacp_mode | choices: active*, passive, disabled | The LACP mode for each Port-Channel member.                                                                                                                         |
+|               peer_link_enable | boolean:true*, false                | Enable or disable the peer link member interfaces                                                                                                                   |
+|              peer_link_members | (List)                              | List of interfaces that make up the peer link.                                                                                                                      |
+|                          state | boolean:present*, absent            | Whether to add or remove all mlag-related configuration.  When set to absent, all configuration will be removed and the mlag configuration block will be defaulted. |
 
-    mlag:
-      mlag_domain_id: (string) The name of the MLAG Domain
-      mlag_trunk_group: (string) Trunk group assigned to Vlan
-      mlag_shutdown: (boolean) Enable or disable the MLAG configuration
-      local_if_vlan: (string) The Vlan for the peer link, eg Vlan1024
-      local_if_vlan_description: (string) Description for Vlan1024
-      local_if_ip_address: (String) IP Address for the Vlan Interface
-      local_if_disable_spanning_tree: (boolean) Enable or disable STP on the peer Vlan
-      peer_address: (String) IP Address for the MLAG Peer
-      peer_link_if: (String) The Port-Channel used for the peer link
-      peer_link_mode: (Choices: trunk,access. Default: trunk) The switchport mode for the peer link
-      peer_link_lacp_mode: (Choices: active,passive,disabled. Default: active) The LACP mode for each Port-Channel member.
-      peer_link_enable: (boolean) Enable or disable the peer link member interfaces
-      peer_link_members: (List) List of interfaces
+```
+Note: Asterisk (*) denotes the default value if none specified
+```
 
 
 Dependencies
