@@ -4,3 +4,5 @@
 mlag:
   mlag_shutdown: true
   peer_link_members: []
+
+default_vlan_state: present
