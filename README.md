@@ -50,6 +50,10 @@ Note: Asterisk (*) denotes the default value if none specified
 Connection Variables
 --------------------
 
+Ansible EOS roles require the following connection information to establish
+communication with the nodes in your inventory. This information can exist in
+the Ansible group_vars or host_vars directories, or in the playbook itself.
+
 |         Key | Required | Choices    | Description                              |
 | ----------: | -------- | ---------- | ---------------------------------------- |
 |        host | yes      |            | Specifies the DNS host name or address for connecting to the remote device over the specified *transport*. The value of *host* is used as the destination address for the transport. |
