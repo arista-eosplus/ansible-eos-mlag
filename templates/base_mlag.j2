@@ -1,0 +1,39 @@
+#jinja2: trim_blocks: False
+#jinja2: lstrip_blocks: False
+
+{% set state = mlag.state|default(default_vlan_state) %}
+{% set vlanid = mlag.local_if_vlan | regex_replace('\D+','') %}
+
+
+{% if state == 'absent' %}
+
+ {% set mlag_block = _eos_config | config_block('mlag configuration', indent=3) %}
+  {% if mlag_block | join('\n') | re_search('^local-interface \S+') %}
+no mlag configuration
+  {% endif %}
+
+{# Configure peering vlan #}
+ {% set vlan_block = _eos_config | config_block('vlan ' ~ vlanid, indent=3) %}
+ {% if vlan_block %}
+no vlan {{ vlanid }}
+ {% endif %}
+
+{% elif state == 'present' %}
+
+{# Configure MLAG #}
+mlag configuration
+   local-interface {{ mlag.local_if_vlan }}
+   peer-address {{ mlag.peer_address }}
+   peer-link {{ mlag.peer_link_if }}
+
+ {% if 'mlag_domain_id' in mlag %}
+   domain-id {{ mlag.mlag_domain_id|default('mlagdomain') }}
+ {% endif %}
+
+ {% if mlag.mlag_shutdown %}
+   shutdown
+ {% else %}
+   no shutdown
+ {% endif %}
+
+{% endif %}

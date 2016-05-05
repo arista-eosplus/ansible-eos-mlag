@@ -8,7 +8,7 @@
 
  {# If we find existing switchport config, then default settings #}
  {# These default commands only run the first time absent is called #}
- {% set switchport_block = base_config | config_block('interface ' ~ item, indent=3) %}
+ {% set switchport_block = _eos_config | config_block('interface ' ~ item, indent=3) %}
    {% if switchport_block %}
     {% if switchport_block | join('\n') | re_search('^channel-group') %}
 interface {{ item }}

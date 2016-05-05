@@ -1,0 +1,18 @@
+#jinja2: trim_blocks: False
+#jinja2: lstrip_blocks: False
+
+{% if state == 'absent' %}
+
+{# Remove Port-Channel #}
+{% if _eos_config | re_search('^interface ' ~ mlag.peer_link_if) %}
+no interface {{ mlag.peer_link_if }}
+{% endif %}
+
+{% elif state == 'present' %}
+
+{# Configure Port-Channel #}
+interface {{ mlag.peer_link_if }}
+   switchport mode {{ mlag.peer_link_mode }}
+   switchport trunk group {{ mlag.mlag_trunk_group }}
+
+{% endif %}
