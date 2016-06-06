@@ -1,0 +1,25 @@
+---
+defaults:
+  module: routemaps
+
+testcases:
+  - name: XXX XXX
+    arguments:
+      mlag:
+        mlag_domain_id: mlag1
+        mlag_trunk_group: mlagpeer
+        mlag_shutdown: false
+        local_if_vlan: Vlan1024
+        local_if_vlan_description: Peer MLAG Link
+        local_if_ip_address: 10.0.0.1/30
+        local_if_disable_spanning_tree: true
+        peer_address: 10.0.0.2
+        peer_link_if: Port-Channel10
+        peer_link_mode: trunk
+        peer_link_lacp_mode: active
+        peer_link_enable: true
+        peer_link_members:
+    - Ethernet3
+    - Ethernet4
+    setup: |
+    present: |
