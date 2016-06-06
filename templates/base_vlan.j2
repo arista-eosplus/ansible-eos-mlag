@@ -1,40 +1,48 @@
 #jinja2: trim_blocks: False
 #jinja2: lstrip_blocks: False
 
-{% set state = mlag.state|default(default_vlan_state) %}
+{% set state = mlag.state | default(default_vlan_state) %}
 {% set vlanid = mlag.local_if_vlan | regex_replace('\D+','') %}
 
 
 {% if state == 'absent' %}
 
 {# Configure peering vlan #}
- {% set vlan_block = _eos_config | config_block('vlan ' ~ vlanid, indent=3) %}
- {% if vlan_block %}
+   {% set vlan_block = _eos_config | config_block('vlan ' ~ vlanid, indent=3) %}
+   {% if vlan_block %}
+
 no vlan {{ vlanid }}
- {% endif %}
 
-{# Default Spanning Tree on Vlan #}
-{% if _eos_config | re_search('^no spanning-tree vlan ' ~ vlanid) %}
+   {% endif %}
+
+   {# Default Spanning Tree on Vlan #}
+   {% if _eos_config | re_search('^no spanning-tree vlan ' ~ vlanid) %}
+
 spanning-tree vlan {{ vlanid }}
-{% endif %}
+   {% endif %}
 
-{# Configure peering vlan interface #}
-{% if _eos_config | config_block('interface ' ~ mlag.local_if_vlan, indent=3) %}
+
+   {# Configure peering vlan interface #}
+   {% if _eos_config | config_block('interface ' ~ mlag.local_if_vlan, indent=3) %}
+
 no interface {{ mlag.local_if_vlan }}
-{% endif %}
+
+   {% endif %}
 
 {% elif state == 'present' %}
-
 {# Configure peering vlan #}
+
 vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}
    name MLAG-PEERING
    trunk group {{ mlag.mlag_trunk_group }}
    state active
 
-{# Disable Spanning Tree on Vlan #}
+   {# Disable Spanning Tree on Vlan #}
+
 no spanning-tree vlan {{ vlanid }}
 
-{# Configure peering vlan interface #}
+   {# Configure peering vlan interface #}
+
 interface {{ mlag.local_if_vlan }}
    description {{ mlag.local_if_vlan_description|default(mlag.mlag_domain_id) }}
    ip address {{ mlag.local_if_ip_address }}
