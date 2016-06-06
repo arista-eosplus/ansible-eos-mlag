@@ -2,86 +2,86 @@
 # Force CLI for eos_command to ensure running config is returned properly
 - name: Gather EOS configuration
   eos_command:
-    commands="show running-config all | exclude \.\*"
-    provider={{ provider|default(omit) }}
-    auth_pass={{ auth_pass|default(omit) }}
-    authorize={{ authorize|default(omit) }}
-    host={{ host|default(omit) }}
-    password={{ password|default(omit) }}
-    port={{ port|default(omit) }}
+    commands="show running-config all  |  exclude \.\*"
+    provider={{ provider | default(omit) }}
+    auth_pass={{ auth_pass | default(omit) }}
+    authorize={{ authorize | default(omit) }}
+    host={{ host | default(omit) }}
+    password={{ password | default(omit) }}
+    port={{ port | default(omit) }}
     transport='cli'
-    use_ssl={{ use_ssl|default(omit) }}
-    username={{ username|default(omit) }}
+    use_ssl={{ use_ssl | default(omit) }}
+    username={{ username | default(omit) }}
   register: output
-  no_log: '{{ no_log|default(true) }}'
+  no_log: '{{ no_log | default(true) }}'
   when: _eos_config is not defined
 
 - set_fact:
     _eos_config='{{ output.stdout[0] }}'
-  no_log: "{{ no_log|default(true) }}"
+  no_log: "{{ no_log | default(true) }}"
   when: _eos_config is not defined
 
 - name: Arista MLAG (Vlan Configuration)
   eos_template:
     src=base_vlan.j2
     include_defaults=True
-    config={{ _eos_config|default(omit) }}
-    provider={{ provider|default(omit) }}
-    auth_pass={{ auth_pass|default(omit) }}
-    authorize={{ authorize|default(omit) }}
-    host={{ host|default(omit) }}
-    password={{ password|default(omit) }}
-    port={{ port|default(omit) }}
-    transport={{ transport|default(omit) }}
-    use_ssl={{ use_ssl|default(omit) }}
-    username={{ username|default(omit) }}
+    config={{ _eos_config | default(omit) }}
+    provider={{ provider | default(omit) }}
+    auth_pass={{ auth_pass | default(omit) }}
+    authorize={{ authorize | default(omit) }}
+    host={{ host | default(omit) }}
+    password={{ password | default(omit) }}
+    port={{ port | default(omit) }}
+    transport={{ transport | default(omit) }}
+    use_ssl={{ use_ssl | default(omit) }}
+    username={{ username | default(omit) }}
   when: mlag is defined
 
 - name: Arista MLAG (Port-Channel Configuration)
   eos_template:
     src=base_po.j2
     include_defaults=True
-    config={{ _eos_config|default(omit) }}
-    provider={{ provider|default(omit) }}
-    auth_pass={{ auth_pass|default(omit) }}
-    authorize={{ authorize|default(omit) }}
-    host={{ host|default(omit) }}
-    password={{ password|default(omit) }}
-    port={{ port|default(omit) }}
-    transport={{ transport|default(omit) }}
-    use_ssl={{ use_ssl|default(omit) }}
-    username={{ username|default(omit) }}
+    config={{ _eos_config | default(omit) }}
+    provider={{ provider | default(omit) }}
+    auth_pass={{ auth_pass | default(omit) }}
+    authorize={{ authorize | default(omit) }}
+    host={{ host | default(omit) }}
+    password={{ password | default(omit) }}
+    port={{ port | default(omit) }}
+    transport={{ transport | default(omit) }}
+    use_ssl={{ use_ssl | default(omit) }}
+    username={{ username | default(omit) }}
   when: mlag is defined
 
 - name: Arista MLAG (Mlag Configuration)
   eos_template:
     src=base_mlag.j2
     include_defaults=True
-    config={{ _eos_config|default(omit) }}
-    provider={{ provider|default(omit) }}
-    auth_pass={{ auth_pass|default(omit) }}
-    authorize={{ authorize|default(omit) }}
-    host={{ host|default(omit) }}
-    password={{ password|default(omit) }}
-    port={{ port|default(omit) }}
-    transport={{ transport|default(omit) }}
-    use_ssl={{ use_ssl|default(omit) }}
-    username={{ username|default(omit) }}
+    config={{ _eos_config | default(omit) }}
+    provider={{ provider | default(omit) }}
+    auth_pass={{ auth_pass | default(omit) }}
+    authorize={{ authorize | default(omit) }}
+    host={{ host | default(omit) }}
+    password={{ password | default(omit) }}
+    port={{ port | default(omit) }}
+    transport={{ transport | default(omit) }}
+    use_ssl={{ use_ssl | default(omit) }}
+    username={{ username | default(omit) }}
   when: mlag is defined
 
 - name: Arista MLAG (Peer Link Configuration)
   eos_template:
     src=peer_links.j2
     include_defaults=True
-    config={{ _eos_config|default(omit) }}
-    provider={{ provider|default(omit) }}
-    auth_pass={{ auth_pass|default(omit) }}
-    authorize={{ authorize|default(omit) }}
-    host={{ host|default(omit) }}
-    password={{ password|default(omit) }}
-    port={{ port|default(omit) }}
-    transport={{ transport|default(omit) }}
-    use_ssl={{ use_ssl|default(omit) }}
-    username={{ username|default(omit) }}
+    config={{ _eos_config | default(omit) }}
+    provider={{ provider | default(omit) }}
+    auth_pass={{ auth_pass | default(omit) }}
+    authorize={{ authorize | default(omit) }}
+    host={{ host | default(omit) }}
+    password={{ password | default(omit) }}
+    port={{ port | default(omit) }}
+    transport={{ transport | default(omit) }}
+    use_ssl={{ use_ssl | default(omit) }}
+    username={{ username | default(omit) }}
   with_items: '{{ mlag.peer_link_members | default([]) }}'
   when: mlag is defined

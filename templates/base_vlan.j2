@@ -4,10 +4,9 @@
 {% set state = mlag.state | default(default_vlan_state) %}
 {% set vlanid = mlag.local_if_vlan | regex_replace('\D+','') %}
 
-
 {% if state == 'absent' %}
 
-{# Configure peering vlan #}
+   {# Remove vlan if it exsits #}
    {% set vlan_block = _eos_config | config_block('vlan ' ~ vlanid, indent=3) %}
    {% if vlan_block %}
 
@@ -15,14 +14,17 @@ no vlan {{ vlanid }}
 
    {% endif %}
 
-   {# Default Spanning Tree on Vlan #}
-   {% if _eos_config | re_search('^no spanning-tree vlan ' ~ vlanid) %}
+   {# Remove vlan from 'no spanning-tree' list if it is included #}
+   {% set no_span_tree_list = _eos_config | re_search('^no spanning-tree vlan ([\d\-\,]+$)') %}
+   {% if no_span_tree_list %}
+      {% if vlanid | range_search(no_span_tree_list.group(1)) %}
 
-spanning-tree vlan {{ vlanid }}
+remove span tree {{ vlanid }}
+
+      {% endif %}
    {% endif %}
 
-
-   {# Configure peering vlan interface #}
+   {# Remove peering vlan interface if it exists #}
    {% if _eos_config | config_block('interface ' ~ mlag.local_if_vlan, indent=3) %}
 
 no interface {{ mlag.local_if_vlan }}
@@ -30,17 +32,47 @@ no interface {{ mlag.local_if_vlan }}
    {% endif %}
 
 {% elif state == 'present' %}
-{# Configure peering vlan #}
+   {# --------------------------------------------------- #}
+   {# Configure peering vlan #}
 
 vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}
    name MLAG-PEERING
    trunk group {{ mlag.mlag_trunk_group }}
    state active
 
-   {# Disable Spanning Tree on Vlan #}
+   {# --------------------------------------------------- #}
+   {# Enable/disable Spanning Tree on Vlan #}
+
+   {# Get the list of disabled vlans #}
+   {% set no_span_tree_list = _eos_config | re_search('^no spanning-tree vlan ([\d\-\,]+$)') %}
+
+   {% if mlag.local_if_disable_spanning_tree %}
+      {# vlanid should be included in the list #}
+
+      {% if no_span_tree_list %}
+         {# list exists, make sure vlanid is in the list #}
+
+         {% if not vlanid | range_search(no_span_tree_list.group(1)) %}
+            {# if this check fails, it means the vlanid is already in the list, nothing to do #{
+            {# if the check succeeds, vlanid is not currently in the list, add it by setting 'no spanning-tree vlan' #}
 
 no spanning-tree vlan {{ vlanid }}
 
+         {% endif %}
+      {% else %}
+         {# list does not currently exist, add the vlan to create the list #}
+
+no spanning-tree vlan {{ vlanid }}
+
+      {% endif %}
+   {% else %}
+      {# local_if_disable_spanning_tree is false, allow the vlan spanning-tree #}
+
+spanning-tree vlan {{ vlanid }}
+
+   {% endif %} {# mlag.local_if_disable_spanning_tree #}
+
+   {# --------------------------------------------------- #}
    {# Configure peering vlan interface #}
 
 interface {{ mlag.local_if_vlan }}

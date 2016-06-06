@@ -2,7 +2,11 @@
 # defaults file for eos-mlag
 # these defaults will cause Ansible to skip all tasks
 mlag:
-  mlag_shutdown: true
+  mlag_shutdown: false
+  local_if_disable_spanning_tree: true
+  peer_link_mode: trunk
+  peer_link_lacp_mode: active
+  peer_link_enable: true
   peer_link_members: []
 
 default_vlan_state: present

@@ -27,6 +27,15 @@ interface {{ item }}
 
 interface {{ item }}
    switchport
-   channel-group {{ portchannel }} mode {{ mlag.peer_link_lacp_mode|default('active') }}
+   channel-group {{ portchannel }} mode {{ mlag.peer_link_lacp_mode | default('active') }}
 
-{% endif %}
+   {% if mlag.peer_link_enable %}
+
+   no shutdown
+
+   {% else %}
+
+   shutdown
+
+   {% endif %} {# mlag.peer_link_enable #}
+{% endif %} {# state #}

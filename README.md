@@ -1,3 +1,4 @@
+
 MLAG Role for EOS
 =================
 
@@ -5,6 +6,7 @@ The arista.eos-mlag role creates an abstraction for common MLAG configuration.
 This means that you do not need to write any ansible tasks. Simply create
 an object that matches the requirements below and this role will ingest that
 object and perform the necessary configuration.
+
 
 Installation
 ------------
@@ -21,6 +23,7 @@ Requires an SSH connection for connectivity to your Arista device. You can use
 any of the built-in eos connection variables, or the convenience ``provider``
 dictionary.
 
+
 Role Variables
 --------------
 
@@ -30,23 +33,24 @@ The ``mlag`` dictionary includes the following keys described below:
 | -----------------------------: | ----------------------------------- | ---------------------------------------- |
 |                 mlag_domain_id | string                              | The name of the MLAG Domain              |
 |               mlag_trunk_group | string                              | Trunk group assigned to Vlan             |
-|                  mlag_shutdown | boolean:true, false*                | Enable or disable the MLAG configuration |
+|                  mlag_shutdown | boolean: true, false*               | Enable or disable the MLAG configuration |
 |                  local_if_vlan | string                              | The Vlan for the peer link, eg Vlan1024  |
 |      local_if_vlan_description | string                              | Description for local_if_vlan            |
 |            local_if_ip_address | string                              | IP Address for the local_if_vlan         |
-| local_if_disable_spanning_tree | boolean:true*, false                | Enable or disable STP on the peer Vlan   |
+| local_if_disable_spanning_tree | boolean: true*, false               | Enable or disable STP on the peer Vlan   |
 |                   peer_address | string                              | IP Address for the MLAG Peer             |
 |                   peer_link_if | string                              | The Port-Channel used for the peer link  |
 |                 peer_link_mode | choices: trunk*, access             | The switchport mode for the peer link    |
 |            peer_link_lacp_mode | choices: active*, passive, disabled | The LACP mode for each Port-Channel member. |
-|               peer_link_enable | boolean:true*, false                | Enable or disable the peer link member interfaces |
+|               peer_link_enable | boolean: true*, false               | Enable or disable the peer link member interfaces |
 |              peer_link_members | (List)                              | List of interfaces that make up the peer link. |
-|                          state | boolean:present*, absent            | Whether to add or remove all mlag-related configuration.  When set to absent, all configuration will be removed and the mlag configuration block will be defaulted. |
+|                          state | boolean: present*, absent           | Whether to add or remove all mlag-related configuration.  When set to absent, all configuration will be removed and the mlag configuration block will be defaulted. |
 
 ```
 Note: Asterisk (*) denotes the default value if none specified
 ```
 
+The `default_vlan_state` variable can be used to override the 
 Connection Variables
 --------------------
 
@@ -71,6 +75,7 @@ the Ansible group_vars or host_vars directories, or in the playbook itself.
 Note: Asterisk (*) denotes the default value if none specified
 ```
 
+
 Ansible Variables
 -----------------
 
@@ -82,6 +87,7 @@ Ansible Variables
 Note: Asterisk (*) denotes the default value if none specified
 ```
 
+
 Dependencies
 ------------
 
@@ -89,6 +95,7 @@ The eos-bridging role is built on modules included in the core Ansible code.
 These modules were added in ansible version 2.1
 
 - Ansible 2.1.0
+
 
 Example Playbook
 ----------------
@@ -117,7 +124,7 @@ Sample host_vars/leaf1.example.com
       use_ssl: no
       authorize: yes
       transport: cli
-
+    
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -143,9 +150,9 @@ Sample host_vars/leaf2.example.com
     use_ssl: no
     authorize: yes
     transport: cli
-
+    
     no_log: true
-
+    
     mlag:
       mlag_domain_id: mlag1
       mlag_trunk_group: mlagpeer
@@ -202,6 +209,7 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 Author Information
 ------------------
