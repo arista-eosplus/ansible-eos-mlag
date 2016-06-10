@@ -1,7 +1,7 @@
 #jinja2: trim_blocks: False
 #jinja2: lstrip_blocks: False
 
-{% set state = mlag.state | default(default_vlan_state) %}
+{% set state = mlag.state | default(mlag_defaults.state) %}
 
 {% if state == 'absent' %}
 
@@ -13,10 +13,11 @@ no interface {{ mlag.peer_link_if }}
 {% endif %}
 
 {% elif state == 'present' %}
+   {# Configure Port-Channel #}
+   {% set peer_link_mode = mlag.peer_link_mode | default(mlag_defaults.peer_link_mode) %}
 
-{# Configure Port-Channel #}
 interface {{ mlag.peer_link_if }}
-   switchport mode {{ mlag.peer_link_mode }}
+   switchport mode {{ peer_link_mode }}
    switchport trunk group {{ mlag.mlag_trunk_group }}
 
 {% endif %}

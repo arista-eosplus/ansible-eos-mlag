@@ -1,7 +1,7 @@
 #jinja2: trim_blocks: False
 #jinja2: lstrip_blocks: False
 
-{% set state = mlag.state | default('present') %}
+{% set state = mlag.state | default(mlag_defaults.state) %}
 {% set portchannel = mlag.peer_link_if | regex_replace('\D+','') %}
 
 {% if state == 'absent' %}
@@ -24,12 +24,14 @@ interface {{ item }}
       {% endif %} {# switchport_block #}
 
 {% elif state == 'present' %}
+   {% set peer_link_lacp_mode = mlag.peer_link_lacp_mode | default(mlag_defaults.peer_link_lacp_mode) %}
+   {% set peer_link_enable = mlag.peer_link_enable | default(mlag_defaults.peer_link_enable) %}
 
 interface {{ item }}
    switchport
-   channel-group {{ portchannel }} mode {{ mlag.peer_link_lacp_mode | default('active') }}
+   channel-group {{ portchannel }} mode {{ peer_link_lacp_mode | default('active') }}
 
-   {% if mlag.peer_link_enable %}
+   {% if peer_link_enable %}
 
    no shutdown
 
@@ -37,5 +39,5 @@ interface {{ item }}
 
    shutdown
 
-   {% endif %} {# mlag.peer_link_enable #}
+   {% endif %} {# peer_link_enable #}
 {% endif %} {# state #}

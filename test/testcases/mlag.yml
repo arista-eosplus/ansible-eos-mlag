@@ -1,8 +1,20 @@
 ---
 defaults:
-  module: routemaps
+  module: mlag
 
 testcases:
+
+# NOTE regarding testcase teardown:
+# Leaving vlans configured can skew the config output for later tests,
+# e.g. using vlan 1024 in one test and vlan 1025 in the next,
+# EOS will group the vlans as
+#    vlan 1024-1025
+# instead of
+#    vlan 1025
+# Adding/modifying/removing test cases can foul things up if not done
+# with care. Easier to just whack the mlag config and the vlan in the
+# testcase teardown section.
+
   # - name: Configure MLAG with full parameters
   #   changed: 4
   #   arguments:
@@ -42,6 +54,9 @@ testcases:
   #     default switchport trunk allowed vlan
   #     default switchport access vlan
   #     default channel-group
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1024
   #   present: |
   #     mlag configuration
   #        domain-id mlag1
@@ -54,7 +69,7 @@ testcases:
   #     interface Vlan1024
   #        description Peer MLAG Link 1
   #        ip address 11.0.0.1/30
-  #     interface Port-Channel10
+  #     interface Port-Channel11
   #        switchport mode trunk
   #        switchport trunk group mlagpeer
   #     interface Ethernet3
@@ -73,62 +88,430 @@ testcases:
   #        switchport trunk allowed vlan 1-4094
   #        switchport access vlan 1
   #        channel-group 11 mode active
+  #
+  # - name: Configure MLAG with minimal parameters
+  #   # Only 3 tasks change since no peer_link_members to process
+  #   changed: 3
+  #   arguments:
+  #     mlag:
+  #       mlag_domain_id: mlag2
+  #       mlag_trunk_group: mlagpeer
+  #       mlag_shutdown: false
+  #       local_if_vlan: Vlan1025
+  #       local_if_ip_address: 12.0.0.1/30
+  #       peer_address: 12.0.0.2
+  #       peer_link_if: Port-Channel12
+  #   setup: |
+  #     no mlag configuration
+  #     no vlan 1025
+  #     spanning-tree vlan 1025
+  #     no interface Vlan1025
+  #     no interface Port-Channel12
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1025
+  #   present: |
+  #     mlag configuration
+  #        domain-id mlag2
+  #        local-interface Vlan1025
+  #        peer-address 12.0.0.2
+  #        peer-link Port-Channel12
+  #        no shutdown
+  #     vlan 1025
+  #        name MLAG-PEERING
+  #        trunk group mlagpeer
+  #        state active
+  #     interface Vlan1025
+  #        ip address 12.0.0.1/30
+  #     interface Port-Channel12
+  #        switchport mode trunk
+  #        switchport trunk group mlagpeer
+  #
+  # - name: Configure MLAG with vlan in a group
+  #   # See note at top regarding vlan groups
+  #   changed: 4
+  #   arguments:
+  #     mlag:
+  #       mlag_domain_id: mlag3
+  #       mlag_trunk_group: mlagpeergrp
+  #       mlag_shutdown: false
+  #       local_if_vlan: Vlan1030
+  #       local_if_ip_address: 13.0.0.1/30
+  #       peer_address: 13.0.0.3
+  #       peer_link_if: Port-Channel13
+  #       peer_link_lacp_mode: active
+  #       peer_link_members:
+  #         - Ethernet3
+  #         - Ethernet4
+  #   setup: |
+  #     no mlag configuration
+  #     no vlan 1010,1012,1025-1027,2100-2102
+  #     spanning-tree vlan 1030
+  #     no interface Vlan1030
+  #     no interface Port-Channel13
+  #     vlan 1025,1027,2100-2102
+  #     name MLAG-PEERING
+  #     trunk group mlagpeergrp
+  #     state active
+  #     vlan 1010
+  #     name MLAG-PEERING
+  #     trunk group mlagpeersingle
+  #     state active
+  #     vlan 1012
+  #     name MLAG-PEERING
+  #     trunk group mlagpeergrp
+  #     state suspend
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1010,1012,1025-1027,2100-2102
+  #   present: |
+  #     mlag configuration
+  #        domain-id mlag3
+  #        local-interface Vlan1030
+  #        peer-address 13.0.0.3
+  #        peer-link Port-Channel13
+  #        no shutdown
+  #     vlan 1025-1027,2100-2102
+  #        name MLAG-PEERING
+  #        trunk group mlagpeergrp
+  #        state active
+  #     interface Vlan1030
+  #        ip address 13.0.0.1/30
+  #     interface Port-Channel13
+  #        switchport mode trunk
+  #        switchport trunk group mlagpeergrp
+  #     interface Ethernet3
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #        channel-group 13 mode active
+  #     interface Ethernet4
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #        channel-group 13 mode active
+  #
+  # - name: Remove MLAG configuration
+  #   changed: 4
+  #   arguments:
+  #     mlag:
+  #       mlag_domain_id: mlag4
+  #       state: absent
+  #       mlag_trunk_group: mlagpeer
+  #       mlag_shutdown: false
+  #       local_if_vlan: Vlan1027
+  #       peer_link_if: Port-Channel14
+  #       peer_link_members:
+  #         - Ethernet3
+  #         - Ethernet4
+  #   setup: |
+  #     no mlag configuration
+  #     vlan 1027
+  #     name MLAG-PEERING
+  #     trunk group mlagpeer
+  #     state active
+  #     interface Vlan1027
+  #     ip address 14.0.0.1/28
+  #     interface Port-Channel14
+  #     switchport mode trunk
+  #     switchport trunk group mlagpeer
+  #     mlag configuration
+  #     domain-id mlag4
+  #     local-interface Vlan1027
+  #     peer-address 14.0.0.4
+  #     peer-link Port-Channel14
+  #     no shutdown
+  #     interface Ethernet3
+  #     no shutdown
+  #     switchport
+  #     switchport mode access
+  #     switchport trunk native vlan 1
+  #     switchport trunk allowed vlan 1-4094
+  #     switchport access vlan 1
+  #     channel-group 14 mode active
+  #     interface Ethernet4
+  #     no shutdown
+  #     switchport
+  #     switchport mode access
+  #     switchport trunk native vlan 1
+  #     switchport trunk allowed vlan 1-4094
+  #     switchport access vlan 1
+  #     channel-group 14 mode active
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1027
+  #   present: |
+  #     mlag configuration
+  #        no domain-id
+  #        heartbeat-interval 4000
+  #        no local-interface
+  #        no peer-address
+  #        no peer-link
+  #        reload-delay 0
+  #        no reload-delay non-mlag
+  #        no reload-delay mode
+  #        no shutdown
+  #     interface Ethernet3
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #     interface Ethernet4
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #   absent: |
+  #     vlan 1027
+  #     interface Vlan1027
+  #     interface Port-Channel14
+  #     mlag configuration
+  #        domain-id mlag4
+  #        local-interface Vlan1027
+  #        peer-address 14.0.0.4
+  #        peer-link Port-Channel14
+  #     interface Ethernet3
+  #        channel-group 14 mode active
+  #     interface Ethernet4
+  #        channel-group 14 mode active
+  #
+  # - name: Modify MLAG configuration
+  #   changed: 4
+  #   arguments:
+  #     mlag:
+  #       mlag_domain_id: mlag5
+  #       mlag_trunk_group: mlagpeer5
+  #       mlag_shutdown: false
+  #       local_if_vlan: Vlan1028
+  #       local_if_vlan_description: Peer MLAG Link 1
+  #       local_if_ip_address: 15.0.0.1/26
+  #       local_if_disable_spanning_tree: true
+  #       peer_address: 15.0.0.5
+  #       peer_link_if: Port-Channel15
+  #       peer_link_mode: trunk
+  #       peer_link_lacp_mode: active
+  #       peer_link_enable: true
+  #       peer_link_members:
+  #         - Ethernet4
+  #   setup: |
+  #     no mlag configuration
+  #     no vlan 1028,2028
+  #     spanning-tree vlan 1028
+  #     no interface Vlan1028
+  #     no interface Port-Channel15
+  #     interface Ethernet3
+  #     default switchport mode
+  #     default switchport trunk group
+  #     default switchport trunk native vlan
+  #     default switchport trunk allowed vlan
+  #     default switchport access vlan
+  #     default channel-group
+  #     interface Ethernet4
+  #     default switchport mode
+  #     default switchport trunk group
+  #     default switchport trunk native vlan
+  #     default switchport trunk allowed vlan
+  #     default switchport access vlan
+  #     default channel-group
+  #     vlan 2028
+  #     name MLAG-PEERING
+  #     trunk group mlagpeer1
+  #     state active
+  #     interface Vlan2028
+  #     ip address 115.0.0.1/28
+  #     interface Port-Channel25
+  #     switchport mode trunk
+  #     switchport trunk group mlagpeer
+  #     mlag configuration
+  #     domain-id mlag5a
+  #     local-interface Vlan2028
+  #     peer-address 115.0.0.4
+  #     peer-link Port-Channel25
+  #     no shutdown
+  #     interface Ethernet3
+  #     no shutdown
+  #     switchport
+  #     switchport mode access
+  #     switchport trunk native vlan 1
+  #     switchport trunk allowed vlan 1-4094
+  #     switchport access vlan 1
+  #     channel-group 25 mode active
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1028,2028
+  #   present: |
+  #     mlag configuration
+  #        domain-id mlag5
+  #        local-interface Vlan1028
+  #        peer-address 15.0.0.5
+  #        peer-link Port-Channel15
+  #        no shutdown
+  #     vlan 1028
+  #        trunk group mlagpeer5
+  #     interface Vlan1028
+  #        description Peer MLAG Link 1
+  #        ip address 15.0.0.1/26
+  #     interface Port-Channel15
+  #        switchport mode trunk
+  #        switchport trunk group mlagpeer5
+  #     interface Ethernet4
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #        channel-group 15 mode active
+  #     vlan 2028
+  #        name MLAG-PEERING
+  #        trunk group mlagpeer1
+  #        state active
+  #     interface Vlan2028
+  #        ip address 115.0.0.1/28
+  #     interface Port-Channel25
+  #        switchport mode trunk
+  #        switchport trunk group mlagpeer
+  #     interface Ethernet3
+  #        no shutdown
+  #        switchport
+  #        switchport mode access
+  #        switchport trunk native vlan 1
+  #        switchport trunk allowed vlan 1-4094
+  #        switchport access vlan 1
+  #        channel-group 25 mode active
+  #   absent: |
+  #     mlag configuration
+  #        domain-id mlag5a
+  #        local-interface Vlan2028
+  #        peer-address 115.0.0.4
+  #        peer-link Port-Channel25
+  #
+  # - name: Configure disabled MLAG
+  #   # Only 3 tasks change since no peer_link_members to process
+  #   changed: 3
+  #   arguments:
+  #     mlag:
+  #       mlag_domain_id: mlag6
+  #       mlag_trunk_group: mlagpeer6
+  #       mlag_shutdown: true
+  #       local_if_vlan: Vlan1029
+  #       local_if_ip_address: 16.0.0.1/26
+  #       peer_address: 16.0.0.6
+  #       peer_link_if: Port-Channel16
+  #   setup: |
+  #     no mlag configuration
+  #     no vlan 1029
+  #     spanning-tree vlan 1029
+  #     no interface Vlan1029
+  #     no interface Port-Channel16
+  #   teardown: |
+  #     no mlag configuration
+  #     no vlan 1029
+  #   present: |
+  #     mlag configuration
+  #        domain-id mlag6
+  #        local-interface Vlan1029
+  #        peer-address 16.0.0.6
+  #        peer-link Port-Channel16
+  #        shutdown
+  #     vlan 1029
+  #        name MLAG-PEERING
+  #        trunk group mlagpeer6
+  #        state active
+  #     interface Vlan1029
+  #        ip address 16.0.0.1/26
+  #     interface Port-Channel16
+  #        switchport mode trunk
+  #        switchport trunk group mlagpeer6
 
-  - name: XXX XXX XXX Configure MLAG with full parameters XXX XXX XXX default_vlan_state is ineffective
+  - name: Remove MLAG with vlan in a group
+    # See note at top regarding vlan groups
     changed: 4
     arguments:
       mlag:
-        mlag_domain_id: mlag2
-        mlag_trunk_group: mlagpeer
+        mlag_domain_id: mlag7
+        state: absent
+        mlag_trunk_group: mlagpeergrp
         mlag_shutdown: false
-        local_if_vlan: Vlan1025
-        local_if_vlan_description: Peer MLAG Link 2
-        local_if_ip_address: 12.0.0.1/30
-        local_if_disable_spanning_tree: true
-        peer_address: 12.0.0.2
-        peer_link_if: Port-Channel12
-        peer_link_mode: trunk
-        peer_link_lacp_mode: active
-        peer_link_enable: true
+        local_if_vlan: Vlan1030
+        peer_link_if: Port-Channel17
         peer_link_members:
           - Ethernet3
           - Ethernet4
-    default_vlan_state: absent
     setup: |
       no mlag configuration
-      no vlan 1025
-      spanning-tree vlan 1025
-      no interface Vlan1025
-      no interface Port-Channel12
+      no vlan 1010,1012,1025-1032,2100-2102
+      spanning-tree vlan 1030
+      no interface Vlan1030
+      no interface Port-Channel13
+      vlan 1025-1032,2100-2102
+      name MLAG-PEERING
+      trunk group mlagpeergrp
+      state active
+      vlan 1010
+      name MLAG-PEERING
+      trunk group mlagpeersingle
+      state active
+      vlan 1012
+      name MLAG-PEERING
+      trunk group mlagpeergrp
+      state suspend
+      interface Vlan1030
+      description vlan interface
+      ip address 17.0.0.1/26
+      interface Port-Channel17
+      switchport mode trunk
+      switchport trunk group mlagpeer
+      mlag configuration
+      domain-id mlag7
+      local-interface Vlan1030
+      peer-address 17.0.0.7
+      peer-link Port-Channel17
+      no shutdown
       interface Ethernet3
-      default switchport mode
-      default switchport trunk group
-      default switchport trunk native vlan
-      default switchport trunk allowed vlan
-      default switchport access vlan
-      default channel-group
+      no shutdown
+      switchport
+      switchport mode access
+      switchport trunk native vlan 1
+      switchport trunk allowed vlan 1-4094
+      switchport access vlan 1
+      channel-group 17 mode active
       interface Ethernet4
-      default switchport mode
-      default switchport trunk group
-      default switchport trunk native vlan
-      default switchport trunk allowed vlan
-      default switchport access vlan
-      default channel-group
+      no shutdown
+      switchport
+      switchport mode access
+      switchport trunk native vlan 1
+      switchport trunk allowed vlan 1-4094
+      switchport access vlan 1
+      channel-group 17 mode active
+    teardown: |
+      no mlag configuration
+      no vlan 1010,1012,1025-1032,2100-2102
     present: |
       mlag configuration
-         domain-id mlag2
-         local-interface Vlan1025
-         peer-address 12.0.0.2
-         peer-link Port-Channel12
+         no domain-id
+         heartbeat-interval 4000
+         no local-interface
+         no peer-address
+         no peer-link
+         reload-delay 0
+         no reload-delay non-mlag
+         no reload-delay mode
          no shutdown
-      vlan 1025
-         trunk group mlagpeer
-      interface Vlan1025
-         description Peer MLAG Link 2
-         ip address 12.0.0.1/30
-      interface Port-Channel12
-         switchport mode trunk
-         switchport trunk group mlagpeer
+      vlan 1025-1029,1031-1032,2100-2102
+         name MLAG-PEERING
+         trunk group mlagpeergrp
+         state active
       interface Ethernet3
          no shutdown
          switchport
@@ -136,7 +519,6 @@ testcases:
          switchport trunk native vlan 1
          switchport trunk allowed vlan 1-4094
          switchport access vlan 1
-         channel-group 12 mode active
       interface Ethernet4
          no shutdown
          switchport
@@ -144,4 +526,22 @@ testcases:
          switchport trunk native vlan 1
          switchport trunk allowed vlan 1-4094
          switchport access vlan 1
-         channel-group 12 mode active
+    absent: |
+      mlag configuration
+         domain-id mlag7
+         local-interface Vlan1030
+         peer-address 17.0.0.7
+         peer-link Port-Channel17
+      vlan 1025-1032,2100-2102
+         name MLAG-PEERING
+         trunk group mlagpeergrp
+         state active
+      interface Vlan1030
+         ip address 17.0.0.1/26
+      interface Port-Channel17
+         switchport mode trunk
+         switchport trunk group mlagpeergrp
+      interface Ethernet3
+         channel-group 17 mode active
+      interface Ethernet4
+         channel-group 17 mode active

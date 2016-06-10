@@ -1,9 +1,8 @@
 #jinja2: trim_blocks: False
 #jinja2: lstrip_blocks: False
 
-{% set state = mlag.state | default(default_vlan_state) %}
+{% set state = mlag.state | default(mlag_defaults.state) %}
 {% set vlanid = mlag.local_if_vlan | regex_replace('\D+','') %}
-
 
 {% if state == 'absent' %}
 
@@ -24,9 +23,33 @@ no vlan {{ vlanid }}
    {% endif %}
 
 {% elif state == 'present' %}
-{# Configure MLAG #}
+   {# Configure MLAG #}
+   {% set mlag_conf = _eos_config | config_block('mlag configuration', indent=3) %}
 
 mlag configuration
+
+   {# If mlag already configured, and it is not the same local-interface or
+   {# peer-address, we need to remove the current values before setting the new information #}
+   {% set localif = mlag_conf | join('\n') | re_search('local-interface (\S+)$') %}
+   {% set peeraddr = mlag_conf | join('\n') | re_search('peer-address (\d+\.\d+\.\d+\.\d+)$') %}
+   {% if localif %}
+      {% if localif.group(1) != mlag.local_if_vlan %}
+
+   no local-interface
+   no peer-address
+
+      {% endif %} {# localif.group(1) #}
+   {% elif peeraddr %}
+      {% if peeraddr.group(1) != mlag.peer_address %}
+
+   no local-interface
+   no peer-address
+
+      {% endif %} {# peeraddr.group(1) #}
+   {% endif %} {# localif / peeraddr #}
+
+   {# Then set the new information #}
+
    local-interface {{ mlag.local_if_vlan }}
    peer-address {{ mlag.peer_address }}
    peer-link {{ mlag.peer_link_if }}
@@ -37,7 +60,8 @@ mlag configuration
 
    {% endif %}
 
-   {%  if mlag.mlag_shutdown %}
+   {% set mlag_shutdown = mlag.mlag_shutdown | default(mlag_defaults.mlag_shutdown) %}
+   {%  if mlag_shutdown %}
 
    shutdown
 
@@ -45,5 +69,5 @@ mlag configuration
 
    no shutdown
 
-   {% endif %} {# mlag.mlag_shutdown #}
+   {% endif %} {# mlag_shutdown #}
 {% endif %} {# state #}

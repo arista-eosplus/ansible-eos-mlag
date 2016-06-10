@@ -1,18 +1,27 @@
 #jinja2: trim_blocks: False
 #jinja2: lstrip_blocks: False
 
-{% set state = mlag.state | default(default_vlan_state) %}
+{% set state = mlag.state | default(mlag_defaults.state) %}
 {% set vlanid = mlag.local_if_vlan | regex_replace('\D+','') %}
 
 {% if state == 'absent' %}
 
    {# Remove vlan if it exsits #}
-   {% set vlan_block = _eos_config | config_block('vlan ' ~ vlanid, indent=3) %}
-   {% if vlan_block %}
+   {# Find the list of defined vlan groups #}
+   {% set vlans = _eos_config | re_findall('^vlan [\d\-\,]+$') %}
+
+   {# Check each group to see if our vlan is part of that group #}
+   {% if vlans %}
+      {% for match in vlans %}
+         {% set vlan_group = match | re_search('^vlan ([\d\-\,]+$)') %}
+         {% if vlanid | range_search(vlan_group.group(1)) %}
+            {# vlanid is part of a group, remove the vlan #}
 
 no vlan {{ vlanid }}
 
-   {% endif %}
+         {% endif %} {# vlanid | range_search #}
+      {% endfor %} {# match in vlans #}
+   {% endif %} {# vlans #}
 
    {# Remove vlan from 'no spanning-tree' list if it is included #}
    {% set no_span_tree_list = _eos_config | re_search('^no spanning-tree vlan ([\d\-\,]+$)') %}
@@ -35,10 +44,51 @@ no interface {{ mlag.local_if_vlan }}
    {# --------------------------------------------------- #}
    {# Configure peering vlan #}
 
+   {# We have to look at vlan groups. EOS will group similar vlans together
+   {# and we need to check if our vlan is already defined in one of those
+   {# groups. If it is, we need to verify that the group has the configuration
+   {# requested for this vlan and update it if necessary #}
+
+   {# Begin by assuming the vlan is not present and needs created #}
+   {% set update = [true] %}
+
+   {# Find the list of defined vlan groups #}
+   {% set vlans = _eos_config | re_findall('^vlan [\d\-\,]+$') %}
+
+   {# Check each group to see if our vlan is part of that group #}
+   {% if vlans %}
+      {% for match in vlans %}
+         {% set vlan_group = match | re_search('^vlan ([\d\-\,]+$)') %}
+         {% if vlanid | range_search(vlan_group.group(1)) %}
+            {# vlanid is part of the group, assume we do not need to update at this point #}
+            {% set _ = update.pop() %}
+
+            {# get the group configuration #}
+            {% set group_config = _eos_config | config_block(match, indent=3) %}
+
+            {# If group_config does not match expected vlan config, the vlan needs updated #}
+            {% if not group_config | join('\n') | re_search('^name MLAG-PEERING$') %}
+               {% set _ = update.append(true) %}
+            {% endif %}
+            {% if not group_config | join('\n') | re_search('^trunk group %s$' % mlag.mlag_trunk_group) %}
+               {% set _ = update.append(true) %}
+            {% endif %}
+            {% if not group_config | join('\n') | re_search('^state active$') %}
+               {% set _ = update.append(true) %}
+            {% endif %}
+
+         {% endif %} {# vlanid | range_search #}
+      {% endfor %} {# match in vlans #}
+   {% endif %} {# vlans #}
+
+   {% if update %}
+
 vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}
    name MLAG-PEERING
    trunk group {{ mlag.mlag_trunk_group }}
    state active
+
+   {% endif %}
 
    {# --------------------------------------------------- #}
    {# Enable/disable Spanning Tree on Vlan #}
@@ -46,7 +96,8 @@ vlan {{ mlag.local_if_vlan | regex_replace('\D+','') }}
    {# Get the list of disabled vlans #}
    {% set no_span_tree_list = _eos_config | re_search('^no spanning-tree vlan ([\d\-\,]+$)') %}
 
-   {% if mlag.local_if_disable_spanning_tree %}
+   {% set local_if_disable_spanning_tree = mlag.local_if_disable_spanning_tree | default(mlag_defaults.local_if_disable_spanning_tree) %}
+   {% if local_if_disable_spanning_tree %}
       {# vlanid should be included in the list #}
 
       {% if no_span_tree_list %}
@@ -70,7 +121,7 @@ no spanning-tree vlan {{ vlanid }}
 
 spanning-tree vlan {{ vlanid }}
 
-   {% endif %} {# mlag.local_if_disable_spanning_tree #}
+   {% endif %} {# local_if_disable_spanning_tree #}
 
    {# --------------------------------------------------- #}
    {# Configure peering vlan interface #}
