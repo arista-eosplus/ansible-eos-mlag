@@ -178,6 +178,16 @@ A simple playbook to enable MLAG on your leafs, leaf.yml
 Then run with:
 
     ansible-playbook -i hosts leaf.yml
+    ​    
+
+
+Developer Information
+------------
+
+Development contributions are welcome. Please see *Arista Roles for Ansible - Development Guidelines* ([test/arista-ansible-role-test/README](test/arista-ansible-role-test/README.md)) for additional information, including how to develop and run test cases for role development.
+
+
+
 
 License
 -------
@@ -195,7 +205,7 @@ modification, are permitted provided that the following conditions are met:
   this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
 
-* Neither the name of ansible-eos-mlag nor the names of its
+* Neither the name of Arista nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
 
@@ -215,5 +225,3 @@ Author Information
 ------------------
 
 Please raise any issues using our GitHub repo or email us at ansible-dev@arista.com
-
-[quickstart]: http://ansible-eos.readthedocs.org/en/latest/quickstart.html
