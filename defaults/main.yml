@@ -1,5 +1,7 @@
 ---
 # defaults file for eos-mlag
+eos_save_running_config: true
+
 mlag_defaults:
   mlag_shutdown: false
   local_if_disable_spanning_tree: true
