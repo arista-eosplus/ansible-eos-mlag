@@ -230,7 +230,7 @@ testcases:
       interface Ethernet3
       no shutdown
       switchport
-      switchport mode access
+      switchport mode trunk
       switchport trunk native vlan 1
       switchport trunk allowed vlan 1-4094
       switchport access vlan 1
@@ -238,7 +238,7 @@ testcases:
       interface Ethernet4
       no shutdown
       switchport
-      switchport mode access
+      switchport mode trunk
       switchport trunk native vlan 1
       switchport trunk allowed vlan 1-4094
       switchport access vlan 1
@@ -253,7 +253,7 @@ testcases:
          no local-interface
          no peer-address
          no peer-link
-         reload-delay 0
+         no reload-delay
          no reload-delay non-mlag
          no reload-delay mode
          no shutdown
@@ -277,9 +277,7 @@ testcases:
       interface Port-Channel14
       mlag configuration
          domain-id mlag4
-         local-interface Vlan1027
          peer-address 14.0.0.4
-         peer-link Port-Channel14
       interface Ethernet3
          channel-group 14 mode active
       interface Ethernet4
@@ -392,8 +390,6 @@ testcases:
     absent: |
       mlag configuration
          domain-id mlag5a
-         local-interface Vlan2028
-         peer-address 115.0.0.4
          peer-link Port-Channel25
 
   - name: Configure disabled MLAG
@@ -481,7 +477,7 @@ testcases:
       interface Ethernet3
       no shutdown
       switchport
-      switchport mode access
+      switchport mode trunk
       switchport trunk native vlan 1
       switchport trunk allowed vlan 1-4094
       switchport access vlan 1
@@ -489,7 +485,7 @@ testcases:
       interface Ethernet4
       no shutdown
       switchport
-      switchport mode access
+      switchport mode trunk
       switchport trunk native vlan 1
       switchport trunk allowed vlan 1-4094
       switchport access vlan 1
@@ -504,7 +500,7 @@ testcases:
          no local-interface
          no peer-address
          no peer-link
-         reload-delay 0
+         no reload-delay
          no reload-delay non-mlag
          no reload-delay mode
          no shutdown
@@ -529,9 +525,7 @@ testcases:
     absent: |
       mlag configuration
          domain-id mlag7
-         local-interface Vlan1030
          peer-address 17.0.0.7
-         peer-link Port-Channel17
       vlan 1025-1032,2100-2102
          name MLAG-PEERING
          trunk group mlagpeergrp
