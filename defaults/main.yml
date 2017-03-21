@@ -9,3 +9,5 @@ mlag_defaults:
   peer_link_lacp_mode: active
   peer_link_enable: true
   state: present
+
+resource_version: '2.2'
