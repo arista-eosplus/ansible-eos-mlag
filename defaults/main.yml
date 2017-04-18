@@ -11,3 +11,6 @@ mlag_defaults:
   state: present
 
 resource_version: '2.2'
+gather_config_commands:
+  - command: 'show running-config all | exclude \.\*'
+    output: 'text'
