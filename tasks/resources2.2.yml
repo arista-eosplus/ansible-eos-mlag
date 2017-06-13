@@ -55,8 +55,6 @@
 - name: Arista MLAG (Peer Link Configuration) (Ansible >= 2.2)
   eos_config:
     src: peer_links.j2
-    # src: source_test.j2
-    match: 'none'
     defaults: true
     config: "{{ _eos_config | default(omit) }}"
     auth_pass: "{{ auth_pass | default(omit) }}"
